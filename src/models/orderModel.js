@@ -19,14 +19,15 @@ const orderSchema = new mongoose.Schema(
 
     // ✅ Store delivery address snapshot (so it's saved even if user later changes profile)
     shippingAddress: {
-      fullName: { type: String, required: true },
-      phone: { type: String, required: true },
-      street: { type: String, required: true },
-      city: { type: String, required: true },
-      state: { type: String, required: true },
-      postalCode: { type: String, required: true },
-      country: { type: String, default: "India" },
-    },
+    fullName: { type: String, required: true },
+    phone: { type: String, required: true },
+    email: { type: String },
+    address: { type: String, required: true },
+    city: { type: String, required: true },
+    state: { type: String, required: true },
+    zip: { type: String, required: true },
+    country: { type: String, default: "India" },
+  },
 
     // Razorpay fields
     razorpayOrderId: { type: String },
