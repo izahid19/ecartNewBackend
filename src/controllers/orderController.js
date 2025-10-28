@@ -10,13 +10,13 @@ const Product = require("../models/ProductModels");
 // ------------------------------
 const createOrder = async (req, res) => {
   try {
-    console.log("Received order data:", req.body);
-    const { products, amount, tax, shipping, currency } = req.body;
+    const { products, amount, tax, shipping, currency, shippingAddress } = req.body;
 
-    console.log("👉 Incoming order request:", { products, amount, tax, shipping, currency });
-    console.log("👉 Authenticated user:", req.user);
+    if (!shippingAddress || !shippingAddress.fullName || !shippingAddress.street) {
+      return res.status(400).json({ success: false, message: "Shipping address is required" });
+    }
 
-    // ✅ FIXED HERE — Assume `amount` from frontend is already in rupees
+    // ✅ Amount expected in rupees from frontend
     const amountInPaise = Math.round(Number(amount) * 100);
 
     // Step 1: Create Razorpay order
@@ -27,25 +27,25 @@ const createOrder = async (req, res) => {
     };
 
     const razorpayOrder = await razorpayInstance.orders.create(options);
-    console.log("✅ Razorpay Order Created:", razorpayOrder);
 
     // Step 2: Save order in DB
     const newOrder = new Order({
       user: req.user._id,
       products,
-      amount, // store in rupees (not paise)
+      amount,
       tax,
       shipping,
       currency,
+      shippingAddress,
       status: "Pending",
       razorpayOrderId: razorpayOrder.id,
     });
 
     await newOrder.save();
-    console.log("✅ Order saved to DB:", newOrder);
 
     res.json({
       success: true,
+      message: "Order created successfully",
       order: razorpayOrder,
       dbOrder: newOrder,
     });
@@ -63,7 +63,6 @@ const verifyPayment = async (req, res) => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, paymentFailed } = req.body;
     const userId = req.user._id;
 
-    // ❌ Handle failed or cancelled payment
     if (paymentFailed) {
       const order = await Order.findOneAndUpdate(
         { razorpayOrderId: razorpay_order_id },
@@ -73,7 +72,6 @@ const verifyPayment = async (req, res) => {
       return res.status(400).json({ success: false, message: "Payment failed", order });
     }
 
-    // ✅ Handle successful payment
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_SECRET)
@@ -91,10 +89,10 @@ const verifyPayment = async (req, res) => {
         { new: true }
       );
 
-      // Clear user’s cart after successful payment
+      // Clear user cart
       await Cart.findOneAndUpdate({ userId }, { $set: { items: [], totalPrice: 0 } });
 
-      return res.json({ success: true, message: "Payment successful", order });
+      return res.json({ success: true, message: "Payment verified successfully", order });
     } else {
       await Order.findOneAndUpdate(
         { razorpayOrderId: razorpay_order_id },
@@ -116,8 +114,8 @@ const getAllOrdersAdmin = async (req, res) => {
   try {
     const orders = await Order.find({})
       .sort({ createdAt: -1 })
-      .populate("user", "name email")
-      .populate("products.productId", "productName productPrice");
+      .populate("user", "firstName lastName email")
+      .populate("products.productId", "productName productPrice productImg");
 
     res.json({
       success: true,
@@ -131,7 +129,7 @@ const getAllOrdersAdmin = async (req, res) => {
 };
 
 // ------------------------------
-// Get Orders by User ID
+// Get Orders by User ID (Admin)
 // ------------------------------
 const getUserOrders = async (req, res) => {
   try {
@@ -142,8 +140,8 @@ const getUserOrders = async (req, res) => {
 
     res.status(200).json({ success: true, count: orders.length, orders });
   } catch (error) {
-    console.error("Error fetching user orders:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("❌ Error fetching user orders:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -156,11 +154,10 @@ const getMyOrder = async (req, res) => {
     const { page = 1, limit = 30 } = req.query;
     const skip = (page - 1) * limit;
 
-    // Sort newest first
     const orders = await Order.find({ user: userId })
       .populate("products.productId", "productName productPrice productImg")
       .populate("user", "firstName lastName email")
-      .sort({ createdAt: -1 }) // 🔹 ensure latest order comes first
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit));
 
@@ -176,8 +173,8 @@ const getMyOrder = async (req, res) => {
       orders,
     });
   } catch (error) {
-    console.error("Error fetching user orders:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("❌ Error fetching user orders:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -219,7 +216,7 @@ const getSalesData = async (req, res) => {
       sales: salesByDate.map(item => ({ date: item._id, amount: item.amount })),
     });
   } catch (error) {
-    console.error("Error fetching sales data:", error);
+    console.error("❌ Error fetching sales data:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
