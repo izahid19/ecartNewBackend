@@ -19,13 +19,13 @@ const orderSchema = new mongoose.Schema(
 
     // ✅ Store delivery address snapshot (so it's saved even if user later changes profile)
     shippingAddress: {
-    fullName: { type: String },
-    phone: { type: String },
+    fullName: { type: String, required: true },
+    phone: { type: String, required: true },
     email: { type: String },
-    address: { type: String },
-    city: { type: String },
-    state: { type: String },
-    zip: { type: String },
+    address: { type: String, required: true },
+    city: { type: String, required: true },
+    state: { type: String, required: true },
+    zip: { type: String, required: true },
     country: { type: String, default: "India" },
   },
 

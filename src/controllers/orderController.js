@@ -12,7 +12,7 @@ const createOrder = async (req, res) => {
   try {
     const { products, amount, tax, shipping, currency, shippingAddress } = req.body;
 
-    if (!shippingAddress || !shippingAddress.fullName || !shippingAddress.street) {
+    if (!shippingAddress || !shippingAddress.fullName) {
       return res.status(400).json({ success: false, message: "Shipping address is required" });
     }
 
