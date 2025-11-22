@@ -6,8 +6,7 @@ const productRouter = require('./src/routes/productRouter');
 const cartRouter = require('./src/routes/cartRouter');
 const orderRouter = require('./src/routes/orderRouter');
 const cors = require('cors');
-const redoc = require('redoc-express');
-const swaggerSpec = require('./src/config/swagger');
+const path = require('path');
 
 dotenv.config();
 const app = express();
@@ -32,44 +31,13 @@ app.use("/api/product", productRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/orders", orderRouter);
 
-app.get('/api-doc/swagger.json', (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.send(swaggerSpec);
+app.get('/api-doc', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'api-docs.html'));
 });
 
-app.get(
-  '/api-doc',
-  redoc({
-    title: 'API Docs',
-    specUrl: '/api-doc/swagger.json',
-    nonce: '', // <= it is optional,we can omit this key and value
-    // we are now start supporting the redocOptions object
-    // you can omit the options object if you don't need it
-    // https://redocly.com/docs/api-reference-docs/configuration/functionality/
-    redocOptions: {
-      hideDownloadButton: true,
-      theme: {
-        colors: {
-          primary: {
-            main: '#6EC5AB'
-          }
-        },
-        typography: {
-          fontFamily: `"museo-sans", 'Helvetica Neue', Helvetica, Arial, sans-serif`,
-          fontSize: '15px',
-          lineHeight: '1.5',
-          code: {
-            code: '#87939d',
-            backgroundColor: '#4d4d4e'
-          }
-        },
-        menu: {
-          backgroundColor: '#ffffff'
-        }
-      }
-    }
-  })
-);
+app.get('/api-doc/swagger.json', (req, res) => {
+  res.sendFile(path.join(__dirname, 'swagger.json'));
+});
 
 // Server
 app.listen(port, () => {

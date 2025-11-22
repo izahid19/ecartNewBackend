@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Kart API Documentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #111;
+            border-right: 1px solid #222;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid #222;
+        }
+
+        .sidebar-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .sidebar-header p {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .nav-section {
+            padding: 16px 0;
+        }
+
+        .nav-section-title {
+            padding: 8px 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+        }
+
+        .nav-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-item:hover {
+            background: #1a1a1a;
+            border-left-color: #6EC5AB;
+        }
+
+        .nav-item.active {
+            background: #1a1a1a;
+            border-left-color: #6EC5AB;
+            color: #6EC5AB;
+        }
+
+        .method-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .method-get { background: #1a472a; color: #4ade80; }
+        .method-post { background: #1e3a8a; color: #60a5fa; }
+        .method-put { background: #713f12; color: #fbbf24; }
+        .method-delete { background: #7f1d1d; color: #f87171; }
+        .method-patch { background: #4c1d95; color: #c084fc; }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 40px 60px;
+            max-width: 1200px;
+        }
+
+        .header {
+            margin-bottom: 48px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+
+        .header p {
+            font-size: 16px;
+            color: #999;
+        }
+
+        .info-section {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .info-section h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 16px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #e0e0e0;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .endpoint-section {
+            margin-bottom: 48px;
+            display: none;
+        }
+
+        .endpoint-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #222;
+        }
+
+        .endpoint-header h2 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .endpoint-path {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .endpoint-path code {
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .section-card {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .section-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 16px;
+        }
+
+        .section-card p {
+            color: #999;
+            margin-bottom: 16px;
+        }
+
+        .param-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .param-table th {
+            text-align: left;
+            padding: 12px;
+            background: #0a0a0a;
+            color: #888;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .param-table td {
+            padding: 12px;
+            border-top: 1px solid #222;
+            font-size: 14px;
+        }
+
+        .param-name {
+            color: #6EC5AB;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .param-type {
+            color: #888;
+            font-size: 12px;
+        }
+
+        .param-required {
+            display: inline-block;
+            padding: 2px 6px;
+            background: #7f1d1d;
+            color: #f87171;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .code-block {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 16px;
+            overflow-x: auto;
+            margin-top: 12px;
+        }
+
+        .code-block pre {
+            margin: 0;
+            color: #e0e0e0;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .auth-box {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+
+        .auth-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .auth-label {
+            color: #888;
+            font-size: 13px;
+        }
+
+        .auth-value {
+            background: #000;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            border: 1px solid #333;
+        }
+
+        .response-code {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .response-200 { background: #1a472a; color: #4ade80; }
+        .response-201 { background: #1a472a; color: #4ade80; }
+        .response-400 { background: #713f12; color: #fbbf24; }
+        .response-401 { background: #7f1d1d; color: #f87171; }
+        .response-403 { background: #7f1d1d; color: #f87171; }
+        .response-404 { background: #7f1d1d; color: #f87171; }
+        .response-500 { background: #7f1d1d; color: #f87171; }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>API Documentation</h1>
+                <p>E-Commerce Kart</p>
+            </div>
+            <nav id="navigation"></nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1 id="api-title">Loading...</h1>
+                <p id="api-description">Loading API documentation...</p>
+            </div>
+
+            <div class="info-section" id="api-info" style="display: none;">
+                <h2>API Information</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Version</span>
+                        <span class="info-value" id="api-version">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Base URL</span>
+                        <span class="info-value" id="api-base-url">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Contact</span>
+                        <span class="info-value" id="api-contact">-</span>
+                    </div>
+                </div>
+                <div class="auth-box" id="auth-info" style="display: none;">
+                    <div class="auth-item">
+                        <span class="auth-label">HTTP Authorization Scheme</span>
+                        <span class="auth-value">bearer</span>
+                    </div>
+                    <div class="auth-item">
+                        <span class="auth-label">Bearer format</span>
+                        <span class="auth-value">JWT</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="endpoints-container"></div>
+        </main>
+    </div>
+
+    <script>
+        let apiSpec = null;
+
+        // Fetch and parse the OpenAPI spec
+        fetch('/api-doc/swagger.json')
+            .then(response => response.json())
+            .then(spec => {
+                apiSpec = spec;
+                renderDocumentation();
+            })
+            .catch(error => {
+                console.error('Error loading API spec:', error);
+                document.querySelector('.header h1').textContent = 'Error Loading Documentation';
+                document.querySelector('.header p').textContent = 'Failed to load swagger.json';
+            });
+
+        function renderDocumentation() {
+            // Render header
+            document.getElementById('api-title').textContent = apiSpec.info.title;
+            document.getElementById('api-description').textContent = apiSpec.info.description;
+            document.getElementById('api-version').textContent = apiSpec.info.version;
+            
+            // Show info section
+            document.getElementById('api-info').style.display = 'block';
+            
+            // Set base URL
+            if (apiSpec.servers && apiSpec.servers.length > 0) {
+                document.getElementById('api-base-url').textContent = apiSpec.servers[0].url;
+            }
+            
+            // Set contact
+            if (apiSpec.info.contact && apiSpec.info.contact.email) {
+                document.getElementById('api-contact').textContent = apiSpec.info.contact.email;
+            }
+            
+            // Show auth info if present
+            if (apiSpec.components && apiSpec.components.securitySchemes) {
+                document.getElementById('auth-info').style.display = 'block';
+            }
+
+            // Render navigation and endpoints
+            renderNavigation();
+            renderEndpoints();
+        }
+
+        function renderNavigation() {
+            const nav = document.getElementById('navigation');
+            const tags = {};
+
+            // Group paths by tags
+            Object.keys(apiSpec.paths).forEach(path => {
+                Object.keys(apiSpec.paths[path]).forEach(method => {
+                    const endpoint = apiSpec.paths[path][method];
+                    const tag = endpoint.tags ? endpoint.tags[0] : 'Other';
+                    
+                    if (!tags[tag]) tags[tag] = [];
+                    tags[tag].push({ path, method, endpoint });
+                });
+            });
+
+            // Render navigation
+            Object.keys(tags).forEach(tag => {
+                const section = document.createElement('div');
+                section.className = 'nav-section';
+                
+                const title = document.createElement('div');
+                title.className = 'nav-section-title';
+                title.textContent = tag;
+                section.appendChild(title);
+
+                tags[tag].forEach(({ path, method, endpoint }, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'nav-item';
+                    item.dataset.endpointId = `${method}-${path}`;
+                    
+                    const badge = document.createElement('span');
+                    badge.className = `method-badge method-${method}`;
+                    badge.textContent = method;
+                    
+                    const text = document.createElement('span');
+                    text.textContent = endpoint.summary || path;
+                    
+                    item.appendChild(badge);
+                    item.appendChild(text);
+                    
+                    item.addEventListener('click', () => {
+                        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                        item.classList.add('active');
+                        showEndpoint(`${method}-${path}`);
+                    });
+                    
+                    section.appendChild(item);
+
+                    // Auto-select first item
+                    if (Object.keys(tags)[0] === tag && index === 0) {
+                        item.classList.add('active');
+                    }
+                });
+
+                nav.appendChild(section);
+            });
+        }
+
+        function renderEndpoints() {
+            const container = document.getElementById('endpoints-container');
+            let firstEndpoint = null;
+
+            Object.keys(apiSpec.paths).forEach(path => {
+                Object.keys(apiSpec.paths[path]).forEach(method => {
+                    const endpoint = apiSpec.paths[path][method];
+                    const endpointId = `${method}-${path}`;
+                    
+                    if (!firstEndpoint) firstEndpoint = endpointId;
+
+                    const section = document.createElement('div');
+                    section.className = 'endpoint-section';
+                    section.id = endpointId;
+
+                    // Header
+                    const header = document.createElement('div');
+                    header.className = 'endpoint-header';
+                    header.innerHTML = `
+                        <span class="method-badge method-${method}">${method.toUpperCase()}</span>
+                        <h2>${endpoint.summary || path}</h2>
+                    `;
+                    section.appendChild(header);
+
+                    // Path
+                    const pathDiv = document.createElement('div');
+                    pathDiv.className = 'endpoint-path';
+                    pathDiv.innerHTML = `
+                        <span class="method-badge method-${method}">${method.toUpperCase()}</span>
+                        <code>${path}</code>
+                    `;
+                    section.appendChild(pathDiv);
+
+                    // Description
+                    if (endpoint.description) {
+                        const descCard = document.createElement('div');
+                        descCard.className = 'section-card';
+                        descCard.innerHTML = `<p>${endpoint.description}</p>`;
+                        section.appendChild(descCard);
+                    }
+
+                    // Parameters
+                    if (endpoint.parameters && endpoint.parameters.length > 0) {
+                        const paramCard = document.createElement('div');
+                        paramCard.className = 'section-card';
+                        paramCard.innerHTML = '<h3>Parameters</h3>';
+                        
+                        const table = document.createElement('table');
+                        table.className = 'param-table';
+                        table.innerHTML = `
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>In</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${endpoint.parameters.map(param => `
+                                    <tr>
+                                        <td>
+                                            <span class="param-name">${param.name}</span>
+                                            ${param.required ? '<span class="param-required">Required</span>' : ''}
+                                        </td>
+                                        <td><span class="param-type">${param.schema?.type || 'string'}</span></td>
+                                        <td><span class="param-type">${param.in}</span></td>
+                                        <td>${param.description || '-'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        `;
+                        paramCard.appendChild(table);
+                        section.appendChild(paramCard);
+                    }
+
+                    // Request Body
+                    if (endpoint.requestBody) {
+                        const reqCard = document.createElement('div');
+                        reqCard.className = 'section-card';
+                        reqCard.innerHTML = '<h3>Request Body</h3>';
+                        
+                        const content = endpoint.requestBody.content;
+                        if (content && content['application/json']) {
+                            const schema = content['application/json'].schema;
+                            
+                            // Show schema properties as table if available
+                            if (schema.properties) {
+                                const table = document.createElement('table');
+                                table.className = 'param-table';
+                                table.innerHTML = `
+                                    <thead>
+                                        <tr>
+                                            <th>Property</th>
+                                            <th>Type</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${Object.keys(schema.properties).map(propName => {
+                                            const prop = schema.properties[propName];
+                                            const isRequired = schema.required && schema.required.includes(propName);
+                                            return `
+                                                <tr>
+                                                    <td>
+                                                        <span class="param-name">${propName}</span>
+                                                        ${isRequired ? '<span class="param-required">Required</span>' : ''}
+                                                    </td>
+                                                    <td><span class="param-type">${prop.type || 'string'}</span></td>
+                                                    <td>${prop.description || '-'}</td>
+                                                </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                `;
+                                reqCard.appendChild(table);
+                                
+                                // Generate example JSON
+                                const example = {};
+                                Object.keys(schema.properties).forEach(propName => {
+                                    const prop = schema.properties[propName];
+                                    if (prop.type === 'string') {
+                                        example[propName] = prop.example || `string`;
+                                    } else if (prop.type === 'number' || prop.type === 'integer') {
+                                        example[propName] = prop.example || 0;
+                                    } else if (prop.type === 'boolean') {
+                                        example[propName] = prop.example || false;
+                                    } else if (prop.type === 'array') {
+                                        example[propName] = prop.example || [];
+                                    } else if (prop.type === 'object') {
+                                        example[propName] = prop.example || {};
+                                    } else {
+                                        example[propName] = prop.example || null;
+                                    }
+                                });
+                                
+                                const exampleDiv = document.createElement('div');
+                                exampleDiv.innerHTML = '<h4 style="margin-top: 24px; margin-bottom: 12px; color: #888; font-size: 14px; font-weight: 600;">Example</h4>';
+                                reqCard.appendChild(exampleDiv);
+                                
+                                const codeBlock = document.createElement('div');
+                                codeBlock.className = 'code-block';
+                                codeBlock.innerHTML = `<pre>${JSON.stringify(example, null, 2)}</pre>`;
+                                reqCard.appendChild(codeBlock);
+                            } else {
+                                // Fallback: show raw schema
+                                reqCard.innerHTML += `<div class="code-block"><pre>${JSON.stringify(schema, null, 2)}</pre></div>`;
+                            }
+                        }
+                        
+                        section.appendChild(reqCard);
+                    }
+
+                    // Responses
+                    if (endpoint.responses) {
+                        const respCard = document.createElement('div');
+                        respCard.className = 'section-card';
+                        respCard.innerHTML = '<h3>Responses</h3>';
+                        
+                        Object.keys(endpoint.responses).forEach(code => {
+                            const response = endpoint.responses[code];
+                            const responseDiv = document.createElement('div');
+                            responseDiv.style.marginBottom = '16px';
+                            responseDiv.innerHTML = `
+                                <div>
+                                    <span class="response-code response-${code}">${code}</span>
+                                    <span>${response.description}</span>
+                                </div>
+                            `;
+                            respCard.appendChild(responseDiv);
+                        });
+                        
+                        section.appendChild(respCard);
+                    }
+
+                    // Security
+                    if (endpoint.security && endpoint.security.length > 0) {
+                        const secCard = document.createElement('div');
+                        secCard.className = 'section-card';
+                        secCard.innerHTML = '<h3>Authentication</h3><p>This endpoint requires authentication</p>';
+                        section.appendChild(secCard);
+                    }
+
+                    container.appendChild(section);
+                });
+            });
+
+            // Show first endpoint
+            if (firstEndpoint) {
+                showEndpoint(firstEndpoint);
+            }
+        }
+
+        function showEndpoint(endpointId) {
+            document.querySelectorAll('.endpoint-section').forEach(el => el.classList.remove('active'));
+            const endpoint = document.getElementById(endpointId);
+            if (endpoint) {
+                endpoint.classList.add('active');
+                endpoint.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    </script>
+</body>
+</html>
