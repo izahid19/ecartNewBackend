@@ -1,6 +1,6 @@
 const express = require("express");
 const { isAdmin, isAuthenticated } = require("../middleware/isAuthenticated");
-const { createOrder, verifyPayment, getAllOrdersAdmin, getUserOrders, getMyOrder, getSalesData } = require("../controllers/orderController");
+const { placeOrder, getAllOrdersAdmin, getUserOrders, getMyOrder, getSalesData } = require("../controllers/orderController");
 
 const orderRouter = express.Router();
 
@@ -33,9 +33,9 @@ const orderRouter = express.Router();
 
 /**
  * @swagger
- * /orders/create-order:
+ * /orders/place-order:
  *   post:
- *     summary: Create a new order
+ *     summary: Place a new order directly
  *     tags: [Order]
  *     security:
  *       - bearerAuth: []
@@ -46,49 +46,20 @@ const orderRouter = express.Router();
  *           schema:
  *             type: object
  *             required:
- *               - items
- *               - totalAmount
+ *               - products
+ *               - amount
  *             properties:
- *               items:
+ *               products:
  *                 type: array
- *               totalAmount:
+ *               amount:
  *                 type: number
+ *               shippingAddress:
+ *                 type: object
  *     responses:
  *       201:
- *         description: Order created
+ *         description: Order placed successfully
  */
-orderRouter.post("/create-order", isAuthenticated, createOrder);
-
-/**
- * @swagger
- * /orders/verify-payment:
- *   post:
- *     summary: Verify payment
- *     tags: [Order]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - paymentId
- *               - orderId
- *               - signature
- *             properties:
- *               paymentId:
- *                 type: string
- *               orderId:
- *                 type: string
- *               signature:
- *                 type: string
- *     responses:
- *       200:
- *         description: Payment verified
- */
-orderRouter.post("/verify-payment", isAuthenticated, verifyPayment);
+orderRouter.post("/place-order", isAuthenticated, placeOrder);
 
 /**
  * @swagger
@@ -116,7 +87,7 @@ orderRouter.get('/myorder', isAuthenticated, getMyOrder)
  *       200:
  *         description: List of all orders
  */
-orderRouter.get("/all",isAuthenticated,isAdmin,getAllOrdersAdmin); 
+orderRouter.get("/all", isAuthenticated, isAdmin, getAllOrdersAdmin); 
 
 /**
  * @swagger
@@ -137,7 +108,7 @@ orderRouter.get("/all",isAuthenticated,isAdmin,getAllOrdersAdmin);
  *       200:
  *         description: List of user orders
  */
-orderRouter.get('/user-order/:userId',isAuthenticated,isAdmin, getUserOrders);
+orderRouter.get('/user-order/:userId', isAuthenticated, isAdmin, getUserOrders);
 
 /**
  * @swagger
@@ -151,7 +122,7 @@ orderRouter.get('/user-order/:userId',isAuthenticated,isAdmin, getUserOrders);
  *       200:
  *         description: Sales data
  */
-orderRouter.get("/sales", isAuthenticated,isAdmin, getSalesData);
+orderRouter.get("/sales", isAuthenticated, isAdmin, getSalesData);
 
 
 module.exports = orderRouter;
