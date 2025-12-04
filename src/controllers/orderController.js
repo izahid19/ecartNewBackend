@@ -1,14 +1,12 @@
-const crypto = require("crypto");
-const razorpayInstance = require("../config/razorpay");
 const Order = require("../models/orderModel");
 const User = require("../models/userModel");
 const Cart = require("../models/cartModels");
 const Product = require("../models/ProductModels");
 
 // ------------------------------
-// Create Razorpay Order
+// Place Order (Direct - No Payment Gateway)
 // ------------------------------
-const createOrder = async (req, res) => {
+const placeOrder = async (req, res) => {
   try {
     const { products, amount, tax, shipping, currency, shippingAddress } = req.body;
 
@@ -16,93 +14,37 @@ const createOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: "Shipping address is required" });
     }
 
-    // ✅ Amount expected in rupees from frontend
-    const amountInPaise = Math.round(Number(amount) * 100);
+    if (!products || products.length === 0) {
+      return res.status(400).json({ success: false, message: "No products in order" });
+    }
 
-    // Step 1: Create Razorpay order
-    const options = {
-      amount: amountInPaise, // Razorpay expects paise
-      currency: currency || "INR",
-      receipt: `receipt_${Date.now()}`,
-    };
-
-    const razorpayOrder = await razorpayInstance.orders.create(options);
-
-    // Step 2: Save order in DB
+    // Create order directly
     const newOrder = new Order({
       user: req.user._id,
       products,
       amount,
       tax,
       shipping,
-      currency,
+      currency: currency || "INR",
       shippingAddress,
-      status: "Pending",
-      razorpayOrderId: razorpayOrder.id,
+      status: "Paid", // Directly mark as paid
     });
 
     await newOrder.save();
 
+    // Clear user cart
+    await Cart.findOneAndUpdate(
+      { userId: req.user._id },
+      { $set: { items: [], totalPrice: 0 } }
+    );
+
     res.json({
       success: true,
-      message: "Order created successfully",
-      order: razorpayOrder,
-      dbOrder: newOrder,
+      message: "Order placed successfully",
+      order: newOrder,
     });
   } catch (error) {
-    console.error("❌ Error in createOrder:", error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// ------------------------------
-// Verify Payment
-// ------------------------------
-const verifyPayment = async (req, res) => {
-  try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, paymentFailed } = req.body;
-    const userId = req.user._id;
-
-    if (paymentFailed) {
-      const order = await Order.findOneAndUpdate(
-        { razorpayOrderId: razorpay_order_id },
-        { status: "Failed" },
-        { new: true }
-      );
-      return res.status(400).json({ success: false, message: "Payment failed", order });
-    }
-
-    const body = razorpay_order_id + "|" + razorpay_payment_id;
-    const expectedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_SECRET)
-      .update(body.toString())
-      .digest("hex");
-
-    if (expectedSignature === razorpay_signature) {
-      const order = await Order.findOneAndUpdate(
-        { razorpayOrderId: razorpay_order_id },
-        {
-          status: "Paid",
-          razorpayPaymentId: razorpay_payment_id,
-          razorpaySignature: razorpay_signature,
-        },
-        { new: true }
-      );
-
-      // Clear user cart
-      await Cart.findOneAndUpdate({ userId }, { $set: { items: [], totalPrice: 0 } });
-
-      return res.json({ success: true, message: "Payment verified successfully", order });
-    } else {
-      await Order.findOneAndUpdate(
-        { razorpayOrderId: razorpay_order_id },
-        { status: "Failed" },
-        { new: true }
-      );
-      return res.status(400).json({ success: false, message: "Invalid signature" });
-    }
-  } catch (error) {
-    console.error("❌ Error in verifyPayment:", error);
+    console.error("❌ Error in placeOrder:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -222,8 +164,7 @@ const getSalesData = async (req, res) => {
 };
 
 module.exports = {
-  createOrder,
-  verifyPayment,
+  placeOrder,
   getAllOrdersAdmin,
   getUserOrders,
   getMyOrder,
